@@ -16,13 +16,17 @@ def train_model(data):
     learn.save('stage-2')
     return learn
 
+def load_model(data, model_file):
+    learn = cnn_learner(data, models.resnet34, metrics=error_rate)
+    learn.load(model_file)
+    return learn
+
 def main():
     path = Path('./data')
     verify_dataset(path, ['accident', 'no_accident'])
     data = create_ImageBunch(path)
     print(data.classes, data.c, len(data.train_ds), len(data.valid_ds))
     learn = train_model(data)
-
     return
 
 
