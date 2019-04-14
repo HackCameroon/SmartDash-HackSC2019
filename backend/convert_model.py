@@ -28,7 +28,7 @@ from onnx_coreml import convert
 
 def create_ImageBunch(path):
     data = ImageDataBunch.from_folder(path, train=".", valid_pct=0.2, \
-            ds_tfms=get_transforms(), size=281, num_workers=0, bs=32).normalize(imagenet_stats)
+            ds_tfms=get_transforms(), size=(281,500), num_workers=0, bs=24).normalize(imagenet_stats)
     return data
 
 def load_model(data, model_file):
@@ -39,15 +39,16 @@ def load_model(data, model_file):
 def main():
     path = Path('./data')
     data = create_ImageBunch(path)
-    learn = load_model(data, 'stage-1')
+    learn = load_model(data, 'stage-4')
     # Model = torch.save(learn.model, 'Weights.h5')
     model = learn.model
-    state_dict = torch.load('./data/models/stage-1.pth')
+    state_dict = torch.load('./data/models/stage-4.pth')
     # model.load_state_dict(state_dict)
-    dummy_input = Variable(torch.randn(1, 3, 281, 281))
-    torch.onnx.export(learn.model, dummy_input, 'model.onnx', input_names=['image'], output_names=['accidentornot'], verbose=True)
+    dummy_input = Variable(torch.randn(1, 3, 281, 500))
 
-    model_name = 'model.onnx'
+    torch.onnx.export(learn.model, dummy_input, 'model2.onnx', input_names=['image'], output_names=['prob'], verbose=True)
+
+    model_name = 'model2.onnx'
     onnx_model = onnx.load(model_name)
 
     # onnx model --> Apple Core ML
@@ -57,9 +58,9 @@ def main():
     mlmodel.license = 'MIT'
     mlmodel.short_description = 'This model takes a dashcam picture and determines if it sees a crash'
     mlmodel.input_description['image'] = 'Dashcam Image'
-    mlmodel.output_description['accidentornot'] = 'Confidence and label of accident'
+    mlmodel.output_description['prob'] = 'Confidence and label of accident'
     mlmodel.output_description['classLabel'] = 'Label of predicted accident or not'
-    mlmodel.save(f'{model_name}.mlmodel')
+    mlmodel.save('AccidentClassification.mlmodel')
 
 
 

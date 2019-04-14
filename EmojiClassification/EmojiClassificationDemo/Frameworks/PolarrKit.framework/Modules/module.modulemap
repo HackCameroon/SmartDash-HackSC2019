@@ -1,0 +1,11 @@
+framework module PolarrKit {
+  umbrella header "PolarrKit.h"
+
+  export *
+  module * { export * }
+}
+
+module PolarrKit.Swift {
+    header "PolarrKit-Swift.h"
+    requires objc
+}
